@@ -1,14 +1,24 @@
 // Переписанный на языке C++ пример https://github.com/1vanK/Urho3DHabrahabr01/blob/master/Data/Scripts/Main.as
 
-#include "Urho3DAll.h"
+#include <Urho3D/Core/CoreEvents.h>
+#include <Urho3D/Engine/Application.h>
+#include <Urho3D/Graphics/Camera.h>
+#include <Urho3D/Graphics/Model.h>
+#include <Urho3D/Graphics/Octree.h>
+#include <Urho3D/Graphics/Renderer.h>
+#include <Urho3D/Graphics/StaticModel.h>
+#include <Urho3D/Resource/ResourceCache.h>
+#include <Urho3D/Scene/Scene.h>
+
+using namespace Urho3D;
 
 class Game : public Application
 {
     URHO3D_OBJECT(Game, Application);
 
 private:
-    // Указатель на сцену.
-    Scene* scene_;
+    // Scene@ scene_;
+    SharedPtr<Scene> scene_;
 
 public:
     Game(Context* context) : Application(context)
@@ -17,48 +27,65 @@ public:
 
     void Start()
     {
-        // Создаем сцену и добавляем к ней компонент Octree.
+        // scene_ = Scene();
         scene_ = new Scene(context_);
+        
+        // scene_.CreateComponent("Octree");
         scene_->CreateComponent<Octree>();
 
-        // Создаем ноду и прикрепляем к ней камеру.
+        // Node@ cameraNode = scene_.CreateChild("MyCamera");
         auto cameraNode = scene_->CreateChild("MyCamera");
-        auto camera = cameraNode->CreateComponent<Camera>();
+        
+        // cameraNode.CreateComponent("Camera");
+        cameraNode->CreateComponent<Camera>();
+        
+        // cameraNode.position = Vector3(0.0f, 0.0f, -5.0f);
         cameraNode->SetPosition(Vector3(0.0f, 0.0f, -5.0f));
 
-        // Указываем движку какая камера какой сцены будет показываться на экране.
-        auto viewport = new Viewport(context_, scene_, camera);
-        GetSubsystem<Renderer>()->SetViewport(0, viewport);
+        // Viewport@ viewport = Viewport(scene_, cameraNode.GetComponent("Camera"));
+        auto viewport = new Viewport(context_, scene_, cameraNode->GetComponent<Camera>());
 
-        // Добавляем в сцену куб.
+        // renderer.viewports[0] = viewport;
+        GetSubsystem<Renderer>()->SetViewport(0, viewport);
+        
+        // Node@ boxNode = scene_.CreateChild("MyBox");
         auto boxNode = scene_->CreateChild("MyBox");
+
+        // StaticModel@ boxObject = boxNode.CreateComponent("StaticModel");
         auto boxObject = boxNode->CreateComponent<StaticModel>();
+
+        // boxObject.model = cache.GetResource("Model", "Models/Box.mdl");
         auto cache = GetSubsystem<ResourceCache>();
         boxObject->SetModel(cache->GetResource<Model>("Models/Box.mdl"));
+
+        // boxNode.rotation = Quaternion(45.0f, 45.0f, 45.0f);
         boxNode->SetRotation(Quaternion(45.0f, 45.0f, 45.0f));
 
-        // Создаем ноду и прикрепляем к ней источник света.
+        // Node@ lightNode = scene_.CreateChild("MyLight");
         auto lightNode = scene_->CreateChild("MyLight");
+        
+        // Light@ light = lightNode.CreateComponent("Light");
         auto light = lightNode->CreateComponent<Light>();
+        
+        // light.lightType = LIGHT_DIRECTIONAL;
         light->SetLightType(LIGHT_DIRECTIONAL);
+        
+        // lightNode.direction = Vector3(0.6f, -0.6f, 0.8f);
         lightNode->SetDirection(Vector3(0.6f, -0.6f, 0.8f));
 
-        // Определяем функцию, которая будет вызываться каждый кадр.
+        // SubscribeToEvent("Update", "HandleUpdate");
         SubscribeToEvent(E_UPDATE, URHO3D_HANDLER(Game, HandleUpdate));
     }
 
-    // Обработчик события Update.
     void HandleUpdate(StringHash eventType, VariantMap& eventData)
     {
-        // Чтобы не писать Update::P_TIMESTEP. В данном случае это не особо важно,
-        // но у события может быть больше, чем один параметр.
-        using namespace Update;
+        // float timeStep = eventData["TimeStep"].GetFloat();
+        float timeStep = eventData["TimeStep"].GetFloat();
 
-        // Сколько времени прошло с предыдущего кадра.
-        float timeStep = eventData[P_TIMESTEP].GetFloat();
-
-        // Находим и поворачиваем ноду с кубом.
+        // Node@ boxNode = scene_.GetChild("MyBox");
         auto boxNode = scene_->GetChild("MyBox");
+        
+        // boxNode.Rotate(Quaternion(10.0f * timeStep, 10.0f * timeStep, 10.0f * timeStep));
         boxNode->Rotate(Quaternion(10.0f * timeStep, 10.0f * timeStep, 10.0f * timeStep));
     }
 };
