@@ -1,4 +1,4 @@
-*Более актуальная версия находится тут: <https://github.com/urho3d-learn/editor>.*
+*Более актуальная версия находится тут: <https://github.com/urho3d-learn/flappy-urho>.*
 
 ---
 
